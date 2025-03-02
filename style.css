@@ -1,0 +1,79 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: black;
+  font-family: monospace;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#topContainer {
+  width: 800px;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+#leftInstructions,
+#rightInstructions {
+  width: 45%;
+  font-size: 16px;
+  text-align: center;
+}
+
+#scoreboard {
+  font-size: 50px;
+  margin-bottom: 10px;
+}
+
+
+#canvasContainer {
+  margin: 20px 0;
+}
+
+canvas {
+  background: black;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+#emojiContainer {
+  display: flex;
+  justify-content: left;
+  gap: 400px;
+  margin-bottom: 20px;
+  width: 800px;
+}
+
+#leftEmoji,
+#rightEmoji {
+  font-size: 200px;
+  width: 120px;
+  text-align: center;
+}
+
+#resetButton {
+  background: #222;
+  border: 3px solid #e9e9e9;
+  color: #c2c2c2;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 16px;
+  padding: 10px 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 0 #000;
+  box-shadow: 4px 4px 0 #ff0000;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 10px;
+}
+
+#resetButton:hover {
+  background: #0011ff;
+  color: #222;
+  box-shadow: none;
+}
