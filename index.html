@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tyreke's Pong Game!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div id="topContainer">
+      <div id="leftInstructions">
+        <strong>Player 1 (Blue)</strong><br />
+        Use W (up) and S (down)<br />
+        Serve: ball will go to the right.
+      </div>
+      <div id="rightInstructions">
+        <strong>Player 2 (Red)</strong><br />
+        Use ↑ (up) and ↓ (down)<br />
+        Serve: ball will go to the left.
+      </div>
+    </div>
+    <div id="scoreboard">Left: 0 | Right: 0</div>
+    <div id="canvasContainer">
+      <canvas id="pongCanvas" width="800" height="600"></canvas>
+    </div>
+    <div id="emojiContainer">
+      <div id="leftEmoji">😊</div>
+      <div id="rightEmoji">😊</div>
+    </div>
+    <button id="resetButton">Reset Game</button>
+    <script>
+      const canvas = document.getElementById("pongCanvas");
+      const ctx = canvas.getContext("2d");
+      const scoreboard = document.getElementById("scoreboard");
+      const resetButton = document.getElementById("resetButton");
+      const leftEmojiDiv = document.getElementById("leftEmoji");
+      const rightEmojiDiv = document.getElementById("rightEmoji");
+
+      let gameOver = false;
+
+      // Ball object; starts at center waiting (dx/dy === 0)
+      const ball = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        radius: 10,
+        dx: 0,
+        dy: 0,
+        color: "white"
+      };
+
+      // Paddle dimensions
+      const paddleWidth = 10;
+      const paddleHeight = 100;
+
+      // Left paddle (Player 1 – Blue)
+      const leftPaddle = {
+        x: 10,
+        y: canvas.height / 2 - paddleHeight / 2,
+        width: paddleWidth,
+        height: paddleHeight,
+        dy: 0,
+        color: "blue"
+      };
+
+      // Right paddle (Player 2 – Red)
+      const rightPaddle = {
+        x: canvas.width - 10 - paddleWidth,
+        y: canvas.height / 2 - paddleHeight / 2,
+        width: paddleWidth,
+        height: paddleHeight,
+        dy: 0,
+        color: "red"
+      };
+
+      let leftScore = 0;
+      let rightScore = 0;
+      let servingPlayer = "left";
+
+      const hitMargin = 2;
+      const minHorizontalSpeed = 2;
+
+      function drawGoalZones() {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, 2, canvas.height);
+        ctx.fillRect(canvas.width - 2, 0, 2, canvas.height);
+      }
+
+      document.addEventListener("keydown", function(e) {
+        if (gameOver) return;
+        // Left paddle controls (W and S)
+        if (e.key === "w" || e.key === "W" || e.key === "s" || e.key === "S") {
+          if (ball.dx === 0 && ball.dy === 0 && servingPlayer === "left") {
+            ball.dx = 2;
+            ball.dy = e.key.toLowerCase() === "w" ? -2 : 2;
+          }
+          if (e.key.toLowerCase() === "w") {
+            leftPaddle.dy = -8;
+          }
+          if (e.key.toLowerCase() === "s") {
+            leftPaddle.dy = 8;
+          }
+        }
+        // Right paddle controls (ArrowUp and ArrowDown)
+        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+          if (ball.dx === 0 && ball.dy === 0 && servingPlayer === "right") {
+            ball.dx = -2;
+            ball.dy = e.key === "ArrowUp" ? -2 : 2;
+          }
+          if (e.key === "ArrowUp") {
+            rightPaddle.dy = -8;
+          }
+          if (e.key === "ArrowDown") {
+            rightPaddle.dy = 8;
+          }
+        }
+      });
+
+      document.addEventListener("keyup", function(e) {
+        if (e.key === "w" || e.key === "W" || e.key === "s" || e.key === "S") {
+          leftPaddle.dy = 0;
+        }
+        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+          rightPaddle.dy = 0;
+        }
+      });
+
+      function drawBall() {
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        ctx.fillStyle = ball.color;
+        ctx.fill();
+        ctx.closePath();
+        if (ball.dx === 0 && ball.dy === 0) {
+          const arrowLength = 50;
+          if (servingPlayer === "left") {
+            drawArrow(ball.x, ball.y, ball.x + arrowLength, ball.y);
+          } else {
+            drawArrow(ball.x, ball.y, ball.x - arrowLength, ball.y);
+          }
+        }
+      }
+
+      function drawArrow(fromX, fromY, toX, toY) {
+        const headlen = 10;
+        const angle = Math.atan2(toY - fromY, toX - fromX);
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
+        ctx.strokeStyle = "yellow";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(
+          toX - headlen * Math.cos(angle - Math.PI / 6),
+          toY - headlen * Math.sin(angle - Math.PI / 6)
+        );
+        ctx.lineTo(
+          toX - headlen * Math.cos(angle + Math.PI / 6),
+          toY - headlen * Math.sin(angle + Math.PI / 6)
+        );
+        ctx.lineTo(toX, toY);
+        ctx.fillStyle = "yellow";
+        ctx.fill();
+      }
+
+      function drawPaddle(paddle) {
+        ctx.fillStyle = paddle.color;
+        ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+      }
+
+      function movePaddles() {
+        leftPaddle.y += leftPaddle.dy;
+        rightPaddle.y += rightPaddle.dy;
+        if (leftPaddle.y < 0) leftPaddle.y = 0;
+        if (leftPaddle.y + leftPaddle.height > canvas.height)
+          leftPaddle.y = canvas.height - leftPaddle.height;
+        if (rightPaddle.y < 0) rightPaddle.y = 0;
+        if (rightPaddle.y + rightPaddle.height > canvas.height)
+          rightPaddle.y = canvas.height - rightPaddle.height;
+      }
+
+      function moveBall() {
+        if (gameOver) return;
+        if (ball.dx !== 0 || ball.dy !== 0) {
+          ball.x += ball.dx;
+          ball.y += ball.dy;
+          if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+            ball.dy = -ball.dy;
+          }
+          if (ball.x - ball.radius <= 2) {
+            resetBall("right");
+            return;
+          }
+          if (ball.x + ball.radius >= canvas.width - 2) {
+            resetBall("left");
+            return;
+          }
+          if (ball.dx < 0 && (ball.x - ball.radius) <= (leftPaddle.x + leftPaddle.width + hitMargin)) {
+            if ((ball.y + ball.radius) >= (leftPaddle.y - hitMargin) &&
+                (ball.y - ball.radius) <= (leftPaddle.y + leftPaddle.height + hitMargin)) {
+              let hitFactor = (ball.y - (leftPaddle.y + leftPaddle.height / 2)) / (leftPaddle.height / 2);
+              let maxBounceAngle = 75 * Math.PI / 180;
+              let bounceAngle = hitFactor * maxBounceAngle;
+              let speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+              ball.dx = speed * Math.cos(bounceAngle);
+              ball.dy = speed * Math.sin(bounceAngle);
+              if (ball.dx < 0) ball.dx = -ball.dx;
+            }
+          }
+          if (ball.dx > 0 && (ball.x + ball.radius) >= (rightPaddle.x - hitMargin)) {
+            if ((ball.y + ball.radius) >= (rightPaddle.y - hitMargin) &&
+                (ball.y - ball.radius) <= (rightPaddle.y + rightPaddle.height + hitMargin)) {
+              let hitFactor = (ball.y - (rightPaddle.y + rightPaddle.height / 2)) / (rightPaddle.height / 2);
+              let maxBounceAngle = 75 * Math.PI / 180;
+              let bounceAngle = hitFactor * maxBounceAngle;
+              let speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+              ball.dx = -speed * Math.cos(bounceAngle);
+              ball.dy = speed * Math.sin(bounceAngle);
+              if (ball.dx > 0) ball.dx = -ball.dx;
+            }
+          }
+          if (ball.dx !== 0 && Math.abs(ball.dx) < minHorizontalSpeed) {
+            ball.dx = ball.dx < 0 ? -minHorizontalSpeed : minHorizontalSpeed;
+          }
+        }
+      }
+
+      function resetBall(serving) {
+        if (serving === "right") {
+          rightScore++;
+          rightEmojiDiv.textContent = "😄";
+          leftEmojiDiv.textContent = "😠";
+        } else {
+          leftScore++;
+          leftEmojiDiv.textContent = "😄";
+          rightEmojiDiv.textContent = "😠";
+        }
+        if (leftScore >= 7 || rightScore >= 7) {
+          gameOver = true;
+          if (leftScore >= 7) {
+            leftEmojiDiv.textContent = "😏";
+            rightEmojiDiv.textContent = "😢";
+          } else {
+            rightEmojiDiv.textContent = "😏";
+            leftEmojiDiv.textContent = "😢";
+          }
+        }
+        ball.x = canvas.width / 2;
+        ball.y = canvas.height / 2;
+        ball.dx = 0;
+        ball.dy = 0;
+        servingPlayer = serving;
+        updateScoreboard();
+      }
+
+      function updateScoreboard() {
+        if (gameOver) {
+          if (leftScore >= 7) {
+            scoreboard.textContent = "Player 1 (Blue) Wins! Press Reset to Play Again";
+          } else {
+            scoreboard.textContent = "Player 2 (Red) Wins! Press Reset to Play Again";
+          }
+        } else {
+          scoreboard.textContent = `Left: ${leftScore} | Right: ${rightScore}`;
+        }
+      }
+
+      resetButton.addEventListener("click", function() {
+        leftScore = 0;
+        rightScore = 0;
+        gameOver = false;
+        ball.x = canvas.width / 2;
+        ball.y = canvas.height / 2;
+        ball.dx = 0;
+        ball.dy = 0;
+        servingPlayer = "left";
+        leftPaddle.y = canvas.height / 2 - paddleHeight / 2;
+        rightPaddle.y = canvas.height / 2 - paddleHeight / 2;
+        leftEmojiDiv.textContent = "😊";
+        rightEmojiDiv.textContent = "😊";
+        updateScoreboard();
+      });
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawGoalZones();
+        drawBall();
+        drawPaddle(leftPaddle);
+        drawPaddle(rightPaddle);
+        if (!gameOver) {
+          movePaddles();
+          moveBall();
+        }
+        requestAnimationFrame(draw);
+      }
+
+      draw();
+    </script>
+  </body>
+</html>
