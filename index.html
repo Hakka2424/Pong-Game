@@ -90,7 +90,7 @@
         // Left paddle controls (W and S)
         if (e.key === "w" || e.key === "W" || e.key === "s" || e.key === "S") {
           if (ball.dx === 0 && ball.dy === 0 && servingPlayer === "left") {
-            ball.dx = 2;
+            ball.dx = 5;
             ball.dy = e.key.toLowerCase() === "w" ? -2 : 2;
           }
           if (e.key.toLowerCase() === "w") {
@@ -103,7 +103,7 @@
         // Right paddle controls (ArrowUp and ArrowDown)
         if (e.key === "ArrowUp" || e.key === "ArrowDown") {
           if (ball.dx === 0 && ball.dy === 0 && servingPlayer === "right") {
-            ball.dx = -2;
+            ball.dx = -5;
             ball.dy = e.key === "ArrowUp" ? -2 : 2;
           }
           if (e.key === "ArrowUp") {
